@@ -1,0 +1,43 @@
+services:
+  mariadb:
+    container_name: mariadb
+    image: mariadb:latest
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=your_root_password_here
+      - MYSQL_DATABASE=liboo
+      - MYSQL_USER=liboo_user
+      - MYSQL_PASSWORD=your_password_here
+    volumes:
+      - ./data:/var/lib/mysql
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      - PMA_HOST=mariadb
+      - PMA_USER=liboo_user
+      - PMA_PASSWORD=your_password_here
+    depends_on:
+      - mariadb
+  liboo:
+    container_name: liboo
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - liboo_PORT=8000
+      - liboo_PG_DSN=mysql+pymysql://liboo_user:your_password_here@mariadb:3306/liboo
+      - liboo_JWT_SECRET=db358804fe6c48befd5308c1301a8526ba8827390075442b9d6e7e52e25137af
+      - liboo_LIBOO_JWT_ALGORITHM=HS256
+    depends_on:
+      - mariadb
+    # volumes:
+    #   - ./liboo:/app #causing issues, removing for now
